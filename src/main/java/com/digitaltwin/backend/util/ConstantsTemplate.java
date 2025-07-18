@@ -1,6 +1,6 @@
 package com.digitaltwin.backend.util;
 
-public class PromptTemplate {
+public class ConstantsTemplate {
 
     // --- Role Constants ---
     public static final String ROLE_USER = "user";
@@ -25,5 +25,8 @@ public class PromptTemplate {
 
     public static final String USER_TWIN_INSTRUCTIONS =
             "Now answer this question like I would:\n";
+
+    // --- AI Model ---
+    public static final String AI_MODEL = "llama3-70b-8192";
 
 }
