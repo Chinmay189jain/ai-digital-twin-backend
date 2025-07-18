@@ -1,7 +1,10 @@
 package com.digitaltwin.backend.controller;
 
+import com.digitaltwin.backend.dto.TwinAnswerResponse;
+import com.digitaltwin.backend.dto.TwinQuestionRequest;
 import com.digitaltwin.backend.service.AIService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,9 +27,8 @@ public class AIController {
 
     //Ask a question to the AI as a digital twin
     @PostMapping("/ask")
-    public String askTwin(@RequestBody Map<String, String> request) {
-        String twinIdentity = request.get("identity");
-        String userQuestion = request.get("question");
-        return aiService.respondAsTwin(twinIdentity, userQuestion);
+    public ResponseEntity<TwinAnswerResponse> respondAsTwin(@RequestBody TwinQuestionRequest twinQuestionRequest) {
+        String answer = aiService.respondAsTwin(twinQuestionRequest.getTwinIdentity(), twinQuestionRequest.getUserQuestion());
+        return ResponseEntity.ok(new TwinAnswerResponse(answer));
     }
 }

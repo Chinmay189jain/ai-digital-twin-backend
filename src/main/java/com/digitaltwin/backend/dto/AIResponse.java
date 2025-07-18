@@ -1,4 +1,4 @@
-package com.digitaltwin.backend.model;
+package com.digitaltwin.backend.dto;
 
 import lombok.Data;
 
