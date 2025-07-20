@@ -28,7 +28,7 @@ public class JwtService {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    // 🔐 Generate token
+    // Generate token
     public String generateToken(String email) {
         return Jwts.builder()
                 .setSubject(email)
@@ -38,7 +38,7 @@ public class JwtService {
                 .compact();
     }
 
-    // ✅ Validate token
+    // Validate token
     public boolean isTokenValid(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
@@ -48,7 +48,7 @@ public class JwtService {
         }
     }
 
-    // 🧠 Extract email
+    // Extract email
     public String extractEmail(String token) {
         Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
         return claims.getSubject();
