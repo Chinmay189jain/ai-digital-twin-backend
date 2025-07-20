@@ -19,5 +19,5 @@ public class User {
 
     private String name;
     private String email;
-    private String password; //encrypted in future
+    private String password; // This will be encrypted later
 }
