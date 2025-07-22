@@ -3,6 +3,7 @@ package com.digitaltwin.backend.service;
 import com.digitaltwin.backend.dto.AIRequest;
 import com.digitaltwin.backend.dto.AIResponse;
 import com.digitaltwin.backend.model.TwinChat;
+import com.digitaltwin.backend.model.TwinChatResponse;
 import com.digitaltwin.backend.model.TwinProfile;
 import com.digitaltwin.backend.repository.TwinChatRepository;
 import com.digitaltwin.backend.repository.TwinProfileRepository;
@@ -11,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -18,6 +21,7 @@ import reactor.core.publisher.Mono;
 
 import static com.digitaltwin.backend.util.ConstantsTemplate.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AIService {
@@ -74,7 +78,7 @@ public class AIService {
 
                 // Create a new TwinProfile object with the generated summary
                 TwinProfile profile = TwinProfile.builder()
-                        .userId("dummy-user") // Replace with actual user ID
+                        .userId(getCurrentUserEmail()) // Replace with actual user ID
                         .profileSummary(profileSummary)
                         .createdAt(java.time.LocalDateTime.now())
                         .build();
@@ -95,14 +99,17 @@ public class AIService {
         }
     }
 
-    public String respondAsTwin(String twinIdentity, String userQuestion) {
+    public String respondAsTwin(String userQuestion) {
+
+        TwinProfile profile = twinProfileRepository.findByUserId(getCurrentUserEmail())
+                .orElseThrow(() -> new RuntimeException("Twin profile not found"));
 
         // Create the AIRequest object with the system context and user question
         AIRequest request = new AIRequest(
                 AI_MODEL,
                 List.of(
                         new AIRequest.Message(ROLE_SYSTEM, SYSTEM_TWIN_CONTEXT),
-                        new AIRequest.Message(ROLE_USER, TWIN_USER_IDENTITY_PREFIX + twinIdentity),
+                        new AIRequest.Message(ROLE_USER, TWIN_USER_IDENTITY_PREFIX + profile.getProfileSummary()),
                         new AIRequest.Message(ROLE_USER, USER_TWIN_INSTRUCTIONS + userQuestion)
                 ),
                 0.7
@@ -127,7 +134,7 @@ public class AIService {
                 logger.info("Generated answer from user question: {}", answer);
 
                 TwinChat chat = TwinChat.builder()
-                        .userId(twinIdentity) // temporary until JWT is added
+                        .userId(getCurrentUserEmail()) // temporary until JWT is added
                         .question(userQuestion)
                         .aiResponse(answer)
                         .timestamp(java.time.LocalDateTime.now())
@@ -147,5 +154,22 @@ public class AIService {
         } catch (Exception e) {
             throw new RuntimeException("Error during OpenAI call: " + e.getMessage());
         }
+    }
+
+    // This method retrieves the chat history for the current user
+    public List<TwinChatResponse> getTwinChatHistory() {
+        String email = getCurrentUserEmail();
+
+        List<TwinChat> chats = twinChatRepository.findByUserIdOrderByTimestampDesc(email);
+
+        return chats.stream()
+                .map(chat -> new TwinChatResponse(chat.getQuestion(), chat.getAiResponse(), chat.getTimestamp()))
+                .collect(Collectors.toList());
+    }
+
+    // This method retrieves the current user's email from the security context
+    private String getCurrentUserEmail() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getName(); // This gives the email from JWT
     }
 }
