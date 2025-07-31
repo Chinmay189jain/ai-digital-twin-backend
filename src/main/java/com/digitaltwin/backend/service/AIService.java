@@ -95,7 +95,7 @@ public class AIService {
         } catch (WebClientResponseException.TooManyRequests e) {
             throw new RuntimeException("Rate limit exceeded. Try again later." + e.getMessage());
         } catch (Exception e) {
-            throw new RuntimeException("Error during OpenAI call: " + e.getMessage());
+            throw new RuntimeException("Error during Grok api call: " + e.getMessage());
         }
     }
 
@@ -152,7 +152,7 @@ public class AIService {
         } catch (WebClientResponseException.TooManyRequests e) {
             throw new RuntimeException("Rate limit exceeded. Try again later.");
         } catch (Exception e) {
-            throw new RuntimeException("Error during OpenAI call: " + e.getMessage());
+            throw new RuntimeException("Error during Grok api call: " + e.getMessage());
         }
     }
 
