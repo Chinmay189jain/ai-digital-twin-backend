@@ -1,5 +1,7 @@
 package com.digitaltwin.backend.security;
 
+import com.digitaltwin.backend.dto.LoginRequest;
+import com.digitaltwin.backend.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -29,9 +31,10 @@ public class JwtService {
     }
 
     // Generate token
-    public String generateToken(String email) {
+    public String generateToken(User user) {
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(user.getEmail())
+                .claim("username", user.getName())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationInMs))
                 .signWith(key, SignatureAlgorithm.HS256)

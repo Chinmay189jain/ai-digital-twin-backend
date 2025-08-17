@@ -167,6 +167,13 @@ public class AIService {
                 .collect(Collectors.toList());
     }
 
+    // This method retrieves the twin profile for the current user
+    public String getTwinProfile() {
+        TwinProfile profile = twinProfileRepository.findByUserId(getCurrentUserEmail())
+                .orElseThrow(() -> new RuntimeException("Twin profile not found"));
+        return profile.getProfileSummary();
+    }
+
     // This method retrieves the current user's email from the security context
     private String getCurrentUserEmail() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
