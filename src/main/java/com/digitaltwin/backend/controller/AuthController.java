@@ -2,6 +2,7 @@ package com.digitaltwin.backend.controller;
 
 import com.digitaltwin.backend.dto.JwtResponse;
 import com.digitaltwin.backend.dto.LoginRequest;
+import com.digitaltwin.backend.dto.UserRegistration;
 import com.digitaltwin.backend.model.User;
 import com.digitaltwin.backend.repository.UserRepository;
 import com.digitaltwin.backend.security.JwtService;
@@ -11,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +34,7 @@ public class AuthController {
 
     // Register endpoint
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> register(@RequestBody UserRegistration request) {
 
         // Check if email is already registered
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -42,13 +44,14 @@ public class AuthController {
         // Create new user with encoded password
         User user = User.builder()
                 .email(request.getEmail())
+                .name(request.getName())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .build();
 
         // Save user to the database
         userRepository.save(user);
 
-        String token = jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(user);
         return ResponseEntity.ok(new JwtResponse(token));
     }
 
@@ -61,8 +64,11 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
 
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + request.getEmail()));
+
             // Generate JWT on success
-            String token = jwtService.generateToken(request.getEmail());
+            String token = jwtService.generateToken(user);
             return ResponseEntity.ok(new JwtResponse(token));
 
         } catch (BadCredentialsException e) {

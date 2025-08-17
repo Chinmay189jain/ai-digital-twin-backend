@@ -40,4 +40,10 @@ public class AIController {
     public ResponseEntity<List<TwinChatResponse>> getChatHistory() {
         return ResponseEntity.ok(aiService.getTwinChatHistory());
     }
+
+    //Get the digital twin profile
+    @GetMapping("/get-profile")
+    public ResponseEntity<String> getTwinProfile() {
+        return ResponseEntity.ok(aiService.getTwinProfile());
+    }
 }
