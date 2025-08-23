@@ -8,7 +8,8 @@ import java.util.Optional;
 
 public interface TwinChatRepository extends MongoRepository<TwinChat, String> {
 
-    // Custom query to find a TwinChat by userId
-    List<TwinChat> findByUserIdOrderByTimestampDesc(String userId);
+    // Custom query to find a TwinChat by userId and sessionId, ordered by timestamp descending
+    List<TwinChat> findByUserIdAndSessionIdOrderByTimestampDesc(String userId, String sessionId);
 
+    void deleteByUserIdAndSessionId(String userId, String sessionId);
 }

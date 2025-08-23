@@ -5,6 +5,7 @@ import com.digitaltwin.backend.repository.TwinProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -13,15 +14,40 @@ public class TwinProfileService {
     @Autowired
     private TwinProfileRepository twinProfileRepository;
 
-    public TwinProfile save(TwinProfile profile) {
-        return twinProfileRepository.save(profile);
+    @Autowired
+    private AIService aiService;
+
+    @Autowired
+    private UserService userService;
+
+    public String generateProfile(List<String> userAnswers) {
+        try{
+            // Generate the profile summary using AIService
+            String profileSummary = aiService.generateTwinProfile(userAnswers);
+
+            // Create a new TwinProfile object with the generated summary
+            TwinProfile profile = TwinProfile.builder()
+                    .userId(userService.getCurrentUserEmail()) // Replace with actual user ID
+                    .profileSummary(profileSummary)
+                    .createdAt(java.time.LocalDateTime.now())
+                    .build();
+
+            // Save the generated profile to the database
+            twinProfileRepository.save(profile);
+
+            return  profileSummary;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate twin profile: " + e.getMessage(), e);
+        }
     }
 
-    public Optional<TwinProfile> findByUserId(String userId) {
-        return twinProfileRepository.findByUserId(userId);
-    }
-
-    public void deleteById(String id) {
-        twinProfileRepository.deleteById(id);
+    public String getProfile() {
+        try{
+            TwinProfile profile = twinProfileRepository.findByUserId(userService.getCurrentUserEmail())
+                    .orElseThrow(() -> new RuntimeException("Twin profile not found"));
+            return profile.getProfileSummary();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to retrieve twin profile: " + e.getMessage(), e);
+        }
     }
 }
